@@ -1,71 +1,64 @@
-const express =
-require("express");
+const express = require("express");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
-const bcrypt =
-require("bcryptjs");
+const router = express.Router();
 
-const jwt =
-require("jsonwebtoken");
+router.post("/register", async (req, res) => {
 
-const User =
-require("../models/User");
+  const { name, email, password } = req.body;
 
-const router =
-express.Router();
+  try {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ msg: "Email already registered" });
+    }
 
-router.post("/register",
-async(req,res)=>{
+    const hashedPassword = await bcrypt.hash(password, 10);
 
- const {name,email,password}
- = req.body;
+    const user = await User.create({
+      name,
+      email,
+      password: hashedPassword
+    });
 
- const hashedPassword =
- await bcrypt.hash(password,10);
+    res.json({ msg: "Registered successfully" });
 
- const user =
- await User.create({
-   name,
-   email,
-   password:hashedPassword
- });
-
- res.json(user);
-
+  } catch (err) {
+    res.status(500).json({ msg: "Server error" });
+  }
 });
 
-router.post("/login",
-async(req,res)=>{
+router.post("/login", async (req, res) => {
 
- const {email,password}
- = req.body;
+  const { email, password } = req.body;
 
- const user =
- await User.findOne({email});
+  try {
+    const user = await User.findOne({ email });
 
- if(!user)
- return res.status(400)
- .json({msg:"User not found"});
+    if (!user) {
+      return res.status(400).json({ msg: "User not found" });
+    }
 
- const isMatch =
- await bcrypt.compare(
-   password,
-   user.password
- );
+    const isMatch = await bcrypt.compare(password, user.password);
 
- if(!isMatch)
- return res.status(400)
- .json({msg:"Wrong password"});
+    if (!isMatch) {
+      return res.status(400).json({ msg: "Wrong password" });
+    }
 
- const token =
- jwt.sign(
-  {id:user._id},
-  process.env.JWT_SECRET
- );
+    // Token now expires in 7 days
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
- res.json({
-   token
- });
+    res.json({ token, name: user.name });
 
+  } catch (err) {
+    res.status(500).json({ msg: "Server error" });
+  }
 });
 
 module.exports = router;

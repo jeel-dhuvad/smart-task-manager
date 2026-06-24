@@ -1,38 +1,34 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
 
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import PrivateRoute from "./components/PrivateRoute";
 
 function App() {
-
   return (
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
 
-    <BrowserRouter>
+          <Route path="/" element={<Register />} />
+          <Route path="/login" element={<Login />} />
 
-      <Routes>
+          {/* Protected route - redirects to /login if no token */}
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            }
+          />
 
-        <Route
-          path="/"
-          element={<Register />}
-        />
-
-        <Route
-          path="/login"
-          element={<Login />}
-        />
-
-        <Route
-          path="/dashboard"
-          element={<Dashboard />}
-        />
-
-      </Routes>
-
-    </BrowserRouter>
-
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
-
 }
 
 export default App;
