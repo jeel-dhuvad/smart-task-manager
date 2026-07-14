@@ -1,10 +1,20 @@
 import axios from "axios";
+import { useState } from "react";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 function TaskList({ tasks, fetchTasks, authHeaders }) {
 
+  const [deleting, setDeleting] = useState(null);
+  const [completing, setCompleting] = useState(null);
+
   const deleteTask = async (id) => {
+    // Show confirmation dialog
+    if (!window.confirm("Are you sure you want to delete this task?")) {
+      return;
+    }
+
+    setDeleting(id);
     try {
       await axios.delete(
         `${API_URL}/api/tasks/${id}`,
@@ -13,10 +23,13 @@ function TaskList({ tasks, fetchTasks, authHeaders }) {
       fetchTasks();
     } catch (err) {
       alert(err.response?.data?.msg || "Failed to delete task.");
+    } finally {
+      setDeleting(null);
     }
   };
 
   const completeTask = async (task) => {
+    setCompleting(task._id);
     try {
       await axios.put(
         `${API_URL}/api/tasks/${task._id}`,
@@ -26,8 +39,20 @@ function TaskList({ tasks, fetchTasks, authHeaders }) {
       fetchTasks();
     } catch (err) {
       alert(err.response?.data?.msg || "Failed to update task.");
+    } finally {
+      setCompleting(null);
     }
   };
+
+  if (tasks.length === 0) {
+    return (
+      <div className="task-list">
+        <p style={{ textAlign: "center", color: "#999", marginTop: "40px" }}>
+          No tasks found. Create one to get started!
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="task-list">
@@ -40,7 +65,11 @@ function TaskList({ tasks, fetchTasks, authHeaders }) {
           <p>
             Due Date:{" "}
             {task.dueDate
-              ? new Date(task.dueDate).toLocaleDateString()
+              ? new Date(task.dueDate).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric'
+                })
               : "N/A"}
           </p>
 
@@ -52,16 +81,17 @@ function TaskList({ tasks, fetchTasks, authHeaders }) {
             <button
               className="complete-btn"
               onClick={() => completeTask(task)}
-              disabled={task.status === "Completed"}
+              disabled={task.status === "Completed" || completing === task._id}
             >
-              Complete
+              {completing === task._id ? "Completing..." : "Complete"}
             </button>
 
             <button
               className="delete-btn"
               onClick={() => deleteTask(task._id)}
+              disabled={deleting === task._id}
             >
-              Delete
+              {deleting === task._id ? "Deleting..." : "Delete"}
             </button>
           </div>
 

@@ -9,6 +9,7 @@ function TaskForm({ fetchTasks, authHeaders }) {
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const addTask = async () => {
 
@@ -18,6 +19,8 @@ function TaskForm({ fetchTasks, authHeaders }) {
       setError("Task title is required.");
       return;
     }
+
+    setLoading(true);
 
     try {
       await axios.post(
@@ -33,6 +36,8 @@ function TaskForm({ fetchTasks, authHeaders }) {
 
     } catch (err) {
       setError(err.response?.data?.msg || "Failed to add task.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -50,23 +55,33 @@ function TaskForm({ fetchTasks, authHeaders }) {
         placeholder="Task Title"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
+        disabled={loading}
+        maxLength="200"
       />
 
-      <input
-        type="text"
+      <textarea
         placeholder="Description"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
+        disabled={loading}
+        maxLength="1000"
+        rows="3"
+        style={{ resize: "vertical" }}
       />
 
       <input
         type="date"
         value={dueDate}
         onChange={(e) => setDueDate(e.target.value)}
+        disabled={loading}
       />
 
-      <button className="add-btn" onClick={addTask}>
-        Add Task
+      <button 
+        className="add-btn" 
+        onClick={addTask}
+        disabled={loading}
+      >
+        {loading ? "Adding..." : "Add Task"}
       </button>
 
     </div>
