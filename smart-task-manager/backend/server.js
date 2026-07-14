@@ -6,16 +6,7 @@ require("dotenv").config();
 
 const app = express();
 
-// CORS configuration - whitelist allowed origins
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',')
-  : ['http://localhost:5173'];
-
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true
-}));
-
+app.use(cors());
 app.use(express.json());
 
 mongoose.connect(process.env.MONGO_URI)

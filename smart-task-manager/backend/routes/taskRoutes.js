@@ -1,7 +1,6 @@
 const express = require("express");
 const Task = require("../models/Task");
 const authMiddleware = require("../middleware/auth");
-const validateTask = require("../middleware/validate");
 
 const router = express.Router();
 
@@ -19,7 +18,7 @@ router.get("/", async (req, res) => {
 });
 
 // POST create task for the logged-in user
-router.post("/", validateTask, async (req, res) => {
+router.post("/", async (req, res) => {
   try {
     const task = await Task.create({
       ...req.body,
@@ -32,7 +31,7 @@ router.post("/", validateTask, async (req, res) => {
 });
 
 // PUT update task (only if it belongs to the user)
-router.put("/:id", validateTask, async (req, res) => {
+router.put("/:id", async (req, res) => {
   try {
     const task = await Task.findOneAndUpdate(
       { _id: req.params.id, user: req.user.id },

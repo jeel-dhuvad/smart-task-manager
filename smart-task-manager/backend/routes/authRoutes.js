@@ -5,50 +5,11 @@ const User = require("../models/User");
 
 const router = express.Router();
 
-// Validate password strength
-const validatePassword = (password) => {
-  if (password.length < 8) {
-    return "Password must be at least 8 characters";
-  }
-  if (!/[A-Z]/.test(password)) {
-    return "Password must contain an uppercase letter";
-  }
-  if (!/[0-9]/.test(password)) {
-    return "Password must contain a number";
-  }
-  return null;
-};
-
-// Validate email format
-const validateEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-};
-
 router.post("/register", async (req, res) => {
 
   const { name, email, password } = req.body;
 
   try {
-    // Validate input fields
-    if (!name || !email || !password) {
-      return res.status(400).json({ msg: "Name, email, and password are required" });
-    }
-
-    if (!validateEmail(email)) {
-      return res.status(400).json({ msg: "Invalid email format" });
-    }
-
-    if (name.trim().length < 2) {
-      return res.status(400).json({ msg: "Name must be at least 2 characters" });
-    }
-
-    // Validate password strength
-    const passwordError = validatePassword(password);
-    if (passwordError) {
-      return res.status(400).json({ msg: passwordError });
-    }
-
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ msg: "Email already registered" });
@@ -74,11 +35,6 @@ router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Validate input fields
-    if (!email || !password) {
-      return res.status(400).json({ msg: "Email and password are required" });
-    }
-
     const user = await User.findOne({ email });
 
     if (!user) {
